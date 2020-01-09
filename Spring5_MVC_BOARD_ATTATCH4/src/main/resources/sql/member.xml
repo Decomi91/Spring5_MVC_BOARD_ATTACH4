@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+ <mapper namespace="Members">
+ 	<select id="idcheck" parameterType="String" resultType="member">
+ 		select *
+ 		from member
+ 		where id = #{id}
+ 	</select>
+ 	
+ 	<insert id="insert" parameterType="map">
+ 		insert into member
+ 		(id, password, name, age, gender, email)
+ 		values(#{id}, #{pass}, #{name}, #{age}, #{gender}, #{email})
+ 	</insert>
+ 	
+ 	<insert id="insert2" parameterType="member">
+ 		insert into member
+ 		(id, password, name, age, gender, email)
+ 		values(#{id}, #{password}, #{name}, #{age}, #{gender}, #{email})
+ 	</insert>
+ 	
+ 	<select id="getlistcount" resultType="int">
+ 		select count(*)
+ 		from member
+ 	</select>
+ 	
+ 	<select id="getmemberlist" resultType="member" parameterType="map">
+		 select *
+		 from	(select rownum r, a.*
+		 			from (select *
+		 					from member
+		 					order by id) a) b
+		 where b.r between #{start} and #{end}
+	 	
+ 	</select>
+ 	
+ 	<delete id="delete" parameterType="String">
+ 		delete from member
+ 		where id = #{id}
+ 	</delete>
+ 	
+ 	<select id="getdetail" parameterType="String" resultType="member">
+ 		select * from member where id = #{id}
+ 	</select>
+ 	
+ 	<update id="updatemember" parameterType="member">
+ 		update member
+ 		set password = #{password}, name = #{name}, age = #{age}, gender = #{gender}, email = #{email}
+ 		where id = #{id}
+ 	</update>
+ 	
+ 	<select id="searchlistcount" parameterType="map" resultType="int">
+ 		select count(*)
+ 		from member
+ 		where 
+ 		<choose>
+ 			<when test="search == 0">
+ 				id like #{word}
+ 			</when>
+			<when test="search == 1">
+ 				name like #{word}
+ 			</when>
+			<when test="search == 2">
+ 				age = #{word}
+ 			</when>
+			<when test="search == 3">
+ 				gender like #{word}
+ 			</when>
+		</choose>
+ 	</select>
+ 	
+ 	<select id="searchlist" parameterType="map" resultType="member">
+		select *
+		from	(select rownum r, b.*
+			 	from	(select *
+			 			from member
+			 			<where> 
+				 			<if test="search == 0">
+				 				id like #{word}
+				 				order by id
+				 			</if>
+			 				<if test="search == 1">
+				 				name like #{word}
+				 				order by name
+				 			</if>
+			 				<if test="search == 2">
+				 				age = #{word}
+				 				order by age
+				 			</if>
+			 				<if test="search == 3">
+				 				gender like #{word}
+				 				order by id
+				 			</if>
+			 			</where>) b) c
+		where c.r between #{start} and #{end}
+ 	</select>
+ </mapper>

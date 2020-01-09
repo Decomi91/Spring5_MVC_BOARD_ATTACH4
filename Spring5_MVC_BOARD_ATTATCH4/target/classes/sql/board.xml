@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+ <mapper namespace="Boards">
+ 	<select id="getlist" resultType="board" parameterType="map">
+ 		select *
+ 		from (select rownum r, a.*
+ 				from (select * 
+		 				from board
+		 				order by board_re_ref desc, board_re_seq asc) a 
+		 	 ) b
+		where b.r between #{start} and #{end}
+		 		 
+ 		
+ 	</select>
+ 	<select id="getlistcount" resultType="java.lang.Integer">
+ 		select nvl(count(*),0) 
+ 		from board
+ 	</select>
+ 	
+ 	<select id="getdetail" parameterType="java.lang.Integer" resultType="board">
+ 		select * 
+ 		from board
+ 		where board_num = #{num}
+ 	</select>
+ 	
+ 	<insert id="insert" parameterType="board">
+ 		<selectKey resultType="int" order="BEFORE" keyProperty="BOARD_NUM">
+ 			select nvl(max(board_num),0)+1 from board
+ 		</selectKey>
+ 		insert into board
+ 		values
+ 		( #{BOARD_NUM}, #{BOARD_NAME}, #{BOARD_PASS}, #{BOARD_SUBJECT}, #{BOARD_CONTENT}, 
+ 			#{BOARD_FILE, jdbcType=VARCHAR}, #{BOARD_ORIGINAL, jdbcType=VARCHAR},
+ 			#{BOARD_NUM}, #{BOARD_RE_LEV}, #{BOARD_RE_SEQ}, 0, sysdate)
+ 	</insert>
+ 	
+ 	<update id="increasereadcount" parameterType="java.lang.Integer">
+ 		update board
+ 		set board_readcount = board_readcount + 1
+ 		where board_num = #{num}
+ 	</update>
+ 	
+ 	<delete id="delete" parameterType="int">
+ 		delete from board
+ 		where board_num = #{num}
+ 	</delete>
+ 	
+ 	<select id="isboardwriter" parameterType="map" resultType="boolean">
+ 		select count(*)
+ 		from board
+ 		where board_num = #{num} and board_pass = #{pass}
+ 	</select>
+ 	
+ 	<update id="modifyboard" parameterType="board">
+ 		update board
+ 		set board_subject = #{BOARD_SUBJECT}, board_content = #{BOARD_CONTENT},
+ 			board_file = #{BOARD_FILE, jdbcType = VARCHAR}, board_original = #{BOARD_ORIGINAL, jdbcType=VARCHAR}
+ 		where board_num = #{BOARD_NUM}
+ 	</update>
+ 	
+ 	<update id="replyboardbefore" parameterType="board">
+ 		update board
+ 		set BOARD_RE_SEQ=BOARD_RE_SEQ + 1 
+ 		where BOARD_RE_REF = #{BOARD_RE_REF} and BOARD_RE_SEQ &lt; #{BOARD_RE_SEQ}
+ 	</update>
+ 	
+ 	<insert id="replyboard" parameterType="board">
+ 		<selectKey resultType="int" order="BEFORE" keyProperty="BOARD_NUM">
+ 			select nvl(max(board_num),0)+1 from board
+ 		</selectKey>
+ 		insert into board
+ 		values
+ 		( #{BOARD_NUM}, #{BOARD_NAME}, #{BOARD_PASS}, #{BOARD_SUBJECT}, #{BOARD_CONTENT}, 
+ 			#{BOARD_FILE, jdbcType=VARCHAR}, #{BOARD_ORIGINAL, jdbcType=VARCHAR},
+ 			#{BOARD_RE_REF}, #{BOARD_RE_LEV}, #{BOARD_RE_SEQ}, 0, sysdate)
+ 	</insert>
+ 	
+ 	<insert id="deletetemp" parameterType="String">
+ 		insert into delete_file
+ 		values(#{file})
+ 	</insert>
+ 	
+ 	<select id="getfilelist" resultType="String">
+ 		select BOARD_FILE
+ 		from delete_file
+ 	</select>
+ 	
+ 	<delete id="deletetempdelete">
+ 		delete delete_file
+ 	</delete>
+ </mapper>

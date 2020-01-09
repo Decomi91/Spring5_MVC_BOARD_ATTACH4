@@ -1,0 +1,84 @@
+WebSocket은 Transport protocol로서, 웹에서 사용하는  Socket입니다.
+
+- HTTP는 클라이언트와 서버는 연결을 유지하지 않는 Connectionless 특징
+- Socket은 클라이언트와 서버가 연결을 유지하는 특성을가짐
+- WebSocket을 사용함으로써 웹에서 양방향 실시간 통신 가능
+
+- WebSocket 프로토콜
+
+	1) WebSocket은 RFC6445 표준
+		WebSocket을 사용하려면 ws 프로토콜 사용 필요
+	
+	2) 웹은 HTTP 프로토콜 사용
+		ws 프로토콜 사용하려면 아래처럼 진행
+		- HTTP에서 WebSocket으로의 프로토콜 전환을 WebSocket HandShake라고 함
+		
+		(1) 브라우저는 프로토콜을 HTTP에서 WebSocket으로 전환하려는 요청을 Header에 Upgrade 속성을 추가해서 서버로 전달
+			<Client -> Server>
+			GET /chat HTTP/1.1 Host : ws://localhost:8089/myChat/echo.do
+			Upgrade : websocket
+			Connection : Upgrade
+			
+			<Server -> Client>
+			HTTP/1.1 101 Switching Protocols
+			Upgrade : websocket
+			Connection : Upgrade
+			
+		(2) 요청 받은 서버가 WebSocket 프로토콜을 이해하면 Upgrade 속성을 통해 프로토콜로 전환에 동의
+			브라우저와 서버는 ws 프로토콜을 사용
+			'http://' => 'ws://'
+			
+		(3) ws 프로토콜로 전환되면, HTTP 연결은 중단
+			동일한 TCP/IP 연결을 통해 WebSocket 연결로 대체
+			
+		(4) WebSocket 연결은 기본적으로 HTTP(80), HTTPS(443)와 동일한 포트 사용
+		
+
+1. 클라이언트 측
+	1) 웹 소켓 객체 생성
+		- 웹 소켓이 동작하기 위해 서버와 연결 필요
+		- HTML5에서 제공하는 WebSocket 객체를 통해 서버 연결 수행
+		- 프로토콜은 ws 사용
+		- 웹소켓 객체 만드는 코드
+			ws = new WebSocket("ws://localhost:8089/myChat/echo.do");
+	
+	2) 이벤트
+		(1) 웹 소켓이 연결되었을 때 호출 이벤트
+			ws.onopen = function(event){
+			}
+		(2) 서버에서 전송하는 데이터를 받으려면 message 이벤트 구현
+			ws.onmessage = function(event){
+			}
+		(3) 웹 소켓이 닫혔을 때 호출되는 이벤트
+			ws.onclose=function(event){
+			}
+			
+2. 서버측
+	(1) /echo.do 라는 url 요청을 통해 웹소켓 접속 어노테이션
+		@Controller
+		@ServerEndpoint(value="/echo.do") // 클라이언트에서 접속할 서버 주소
+		
+	(2) @onOpen는 클라이언트가 웹소켓에 들어오고 서버에 아무런 문제없을 때 실행
+	
+	(3) @onMessage는 클라이언트에게 메시지가 들어왔을 때 실행
+	
+	(4) @onError 웹 소켓 에러 발생할 때
+	
+	(5) @onClose 클라이언트와 웹소켓 연결이 끊기면 실행
+
+
+3. web.xml
+	<async-supported>true</async-supported> -> 추가. 웹소켓을 위한 비동기 방식 설정
+
+
+
+	<servlet>
+		<servlet-name>appServlet</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/spring/appServlet/servlet-context.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+		<async-supported>true</async-supported>
+	</servlet>
