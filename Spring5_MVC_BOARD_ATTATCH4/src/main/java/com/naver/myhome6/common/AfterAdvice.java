@@ -18,5 +18,6 @@ public class AfterAdvice {
 	public void after(JoinPoint proceeding) {
 		System.out.println("[AfterAdvice] : 비즈니스 로직 수행 후 동작");
 		System.out.println("[AfterAdvice] : " + proceeding.getTarget().getClass().getName() + "의 " + proceeding.getSignature().getName() + " 호출");
+		System.out.println("");
 	}
 }
